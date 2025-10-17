@@ -1,7 +1,9 @@
 <?php
 use App\Http\Controllers\Api\NoticiaController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CryptoController; // <-- 1. LÍNEA NUEVA: Importamos el controlador
+use App\Http\Controllers\Api\CryptoController;
+use App\Http\Controllers\Api\SaldoController;
+use App\Http\Controllers\Api\TransaccionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,8 +29,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Ruta para obtener el perfil del usuario logueado
     Route::get('/profile', [AuthController::class, 'profile']);
 
+    Route::post('/profile/avatar', [AuthController::class, 'uploadAvatar']);
+
     // <-- 2. LÍNEA NUEVA: Ruta para obtener los datos del mercado de criptos
     Route::get('/crypto/markets', [CryptoController::class, 'getMarketData']);
 
-    Route::get('/noticias', [NoticiaController::class, 'index']);
+    Route::post('/saldos/cargar-simulado', [SaldoController::class, 'cargarSaldoSimulado']);
+
+    Route::get('/noticias', [NoticiaController::class, 'index']); 
+
+    Route::post('/trade/comprar', [TransaccionController::class, 'comprar']);
+    Route::post('/trade/vender', [TransaccionController::class, 'vender']);
+    Route::get('/transacciones', [TransaccionController::class, 'historial']);
 });

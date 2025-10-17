@@ -12,24 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transacciones', function (Blueprint $table) {
-            $table->id(); // Crea una columna 'id' única y autoincremental.
-
-            // Crea una columna para la ID del usuario y la enlaza con la tabla 'users'.
-            $table->foreignId('user_id')->constrained('users');
-
-            // Define el tipo de transacción. Solo puede tener uno de estos valores.
-            $table->enum('tipo', ['ingreso', 'transferencia_enviada', 'transferencia_recibida', 'compra_crypto', 'venta_crypto']);
-
-            // El monto de la transacción. 15 dígitos en total, 8 de ellos para decimales (ideal para criptos).
-            $table->decimal('monto', 15, 8);
-
-            // La moneda o criptomoneda de la transacción (ej: 'ARS', 'BTC', 'USD').
-            $table->string('moneda');
-
-            // La ID del usuario de destino (para transferencias). Puede ser nulo si no es una transferencia.
-            $table->foreignId('destinatario_id')->nullable()->constrained('users');
-
-            $table->timestamps(); // Crea automáticamente las columnas 'created_at' y 'updated_at'.
+            $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Quién hizo la transacción
+            $table->string('tipo'); // 'compra_crypto', 'venta_crypto', 'transferencia_enviada', 'transferencia_recibida', 'deposito_simulado'
+            $table->string('moneda_origen')->nullable(); // Ej: 'ARS'
+            $table->decimal('cantidad_origen', 15, 8)->nullable(); // Ej: 100000.00
+            $table->string('moneda_destino')->nullable(); // Ej: 'BTC'
+            $table->decimal('cantidad_destino', 15, 8)->nullable(); // Ej: 0.0015
+            $table->decimal('precio_unitario', 15, 8)->nullable(); // Precio de la cripto al momento de la operación
+            $table->timestamps(); // Fecha de la transacción
         });
     }
 

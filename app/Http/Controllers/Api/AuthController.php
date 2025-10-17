@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 // ¡Asegúrate de que Validator esté importado si lo usas,
 // pero $request->validate() no lo necesita!
 
@@ -102,5 +104,42 @@ class AuthController extends Controller
         $user = $request->user()->load('saldos');
 
         return response()->json($user);
+    }
+
+    public function uploadAvatar(Request $request)
+    {
+        // 1. Validación del archivo
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // 2. Obtener el usuario autenticado
+        $user = $request->user();
+
+        // (Opcional) Borrar la foto anterior si existe
+        if ($user->avatar_url) {
+            // Extraer el path relativo del archivo (ej: 'avatars/nombre.jpg')
+            $oldPath = str_replace('/storage/', '', $user->avatar_url); 
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        // 3. Guardar la nueva foto
+        // El archivo se guardará en 'storage/app/public/avatars'
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        // 4. Actualizar la base de datos
+        // Guardamos la URL pública (ej: '/storage/avatars/nombre.jpg')
+        $user->avatar_url = Storage::url($path);
+        $user->save();
+
+        // 5. Devolver la respuesta con el usuario actualizado
+        return response()->json([
+            'message' => 'Foto de perfil actualizada exitosamente.',
+            'user' => $user
+        ]);
     }
 }
