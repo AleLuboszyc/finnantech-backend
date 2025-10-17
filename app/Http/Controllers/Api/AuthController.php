@@ -7,29 +7,60 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+// ¡Asegúrate de que Validator esté importado si lo usas,
+// pero $request->validate() no lo necesita!
 
 class AuthController extends Controller
 {
+    /**
+     * -----------------------------------------------------------------
+     * 👇 ESTA ES LA FUNCIÓN QUE ACTUALIZAMOS 👇
+     * -----------------------------------------------------------------
+     * Actualizada para incluir todos los campos nuevos del formulario de React.
+     */
     public function register(Request $request)
     {
-        // 1. Validar los datos que nos envía el frontend
+        // 1. VALIDACIÓN ACTUALIZADA
         $request->validate([
-            'name' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed', // 'confirmed' busca 'password_confirmation'
+            'dni' => 'required|string|max:10|unique:users',
+            'fecha_nacimiento' => 'required|date',
+            'telefono' => 'required|string|max:20',
+            'sexo' => 'required|string|in:masculino,femenino,otro', // Validar opciones
+            'terms' => 'accepted', // Para el checkbox 'Acepto términos'
         ]);
 
-        // 2. Crear el nuevo usuario
+        // 2. CREACIÓN DE USUARIO ACTUALIZADA
         $user = User::create([
-            'name' => $request->name,
+            'nombre' => $request->nombre,
+            'apellido' => $request->apellido,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // ¡Importante! Encriptar la contraseña
+            'password' => Hash::make($request->password), // ¡Importante! Encriptar
+            'dni' => $request->dni,
+            'fecha_nacimiento' => $request->fecha_nacimiento,
+            'telefono' => $request->telefono,
+            'sexo' => $request->sexo,
         ]);
 
-        // 3. Devolver una respuesta al frontend
-        return response()->json(['message' => 'Usuario registrado exitosamente!'], 201);
+        // 3. Devolver una respuesta (Crear un token de una vez es una buena idea)
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Usuario registrado exitosamente!',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user // Devolvemos el usuario creado
+        ], 201);
     }
 
+    /**
+     * -----------------------------------------------------------------
+     * Esta función está perfecta, no la toques.
+     * -----------------------------------------------------------------
+     */
     public function login(Request $request)
     {
         // 1. Validar los datos
@@ -54,6 +85,22 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'user' => $user // Devolver el usuario en el login también es útil
         ]);
+    }
+
+    /**
+     * -----------------------------------------------------------------
+     * Esta función también está perfecta.
+     * Automáticamente devolverá el usuario con los nuevos campos
+     * (nombre, apellido, etc.) gracias a que actualizamos el Modelo.
+     * -----------------------------------------------------------------
+     */
+    public function profile(Request $request)
+    {
+        // Usamos with('saldos') para cargar también la relación que definimos antes.
+        $user = $request->user()->load('saldos');
+
+        return response()->json($user);
     }
 }

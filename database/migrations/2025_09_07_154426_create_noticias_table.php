@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('noticias', function (Blueprint $table) {
             $table->id();
-            $table->string('titulo');
-            $table->text('contenido');
-            $table->string('url_imagen')->nullable(); // La imagen es opcional.
+            $table->string('title');
+            $table->text('content');
+            $table->string('source'); // Ej: "Reuters", "Bloomberg"
+            $table->string('image_url')->nullable(); // URL a una imagen para la noticia
+            $table->timestamp('published_at'); // Fecha de publicación
             $table->timestamps();
         });
     }

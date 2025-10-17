@@ -13,13 +13,20 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('nombre'); // CAMBIO: de 'name' a 'nombre'
+            $table->string('apellido'); // NUEVO
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('dni')->unique()->nullable(); // NUEVO (nullable por si acaso)
+            $table->date('fecha_nacimiento')->nullable(); // NUEVO
+            $table->string('telefono')->nullable(); // NUEVO
+            $table->string('sexo')->nullable(); // NUEVO (ej: 'masculino', 'femenino', 'otro')
+            $table->string('avatar_url')->nullable(); // NUEVO (para la foto de perfil del Paso 2)
             $table->rememberToken();
             $table->timestamps();
         });
+    
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
