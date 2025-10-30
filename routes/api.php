@@ -18,20 +18,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// --- Rutas de Autenticación ---
+//Rutas de Autenticación
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 
-// --- Rutas Protegidas (Requieren autenticación) ---
+//Rutas Protegidas (Requieren autenticación) 
 Route::middleware('auth:sanctum')->group(function () {
     
-    // Ruta para obtener el perfil del usuario logueado
+    //Ruta para obtener el perfil del usuario logueado
     Route::get('/profile', [AuthController::class, 'profile']);
 
     Route::post('/profile/avatar', [AuthController::class, 'uploadAvatar']);
 
-    // <-- 2. LÍNEA NUEVA: Ruta para obtener los datos del mercado de criptos
+    //Ruta para obtener los datos del mercado de criptos
     Route::get('/crypto/markets', [CryptoController::class, 'getMarketData']);
 
     Route::post('/saldos/cargar-simulado', [SaldoController::class, 'cargarSaldoSimulado']);

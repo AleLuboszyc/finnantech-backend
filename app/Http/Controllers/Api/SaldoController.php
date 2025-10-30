@@ -7,34 +7,51 @@ use Illuminate\Http\Request;
 
 class SaldoController extends Controller
 {
-    /**
-     * Crea un saldo simulado de ARS para el usuario autenticado.
-     */
+   
     public function cargarSaldoSimulado(Request $request)
     {
-        $user = $request->user();
+        //Obtener el usuario autenticado asume que el middleware auth:sanctum está aplicado
+        $user = $request->user(); 
         $moneda = 'ARS';
-        $montoSimulado = 1000000;
+        $montoSimulado = 1000000; 
 
-        // 1. Verificar si el usuario ya tiene saldo en ARS
+        //Buscar si el usuario ya tiene un registro de saldo para la moneda ARS
         $saldoARS = $user->saldos()->where('moneda', $moneda)->first();
 
+        $mensaje = '';
+        $statusCode = 200; 
+        $saldoResultado = null;
+
         if ($saldoARS) {
-            // Si ya tiene, devolvemos un error para no cargarle múltiples veces
-            return response()->json([
-                'message' => 'Error: Ya posees saldo en ARS.'
-            ], 400); // 400 Bad Request
+            //El registro de saldo ARS 
+            
+            if ($saldoARS->cantidad > 0) {
+                return response()->json([
+                    'message' => 'Error: Ya posees saldo positivo en ARS.'
+                ], 400); 
+            
+            } else {
+                $saldoARS->update(['cantidad' => $montoSimulado]);
+                $mensaje = '¡$1,000,000 ARS cargados exitosamente (saldo actualizado)!';
+                $statusCode = 200; 
+                $saldoResultado = $saldoARS->fresh(); 
+            }
+
+        } else {
+            
+            //Creamos un nuevo registro de saldo para ARS
+            $saldoResultado = $user->saldos()->create([
+                'moneda' => $moneda,
+                'cantidad' => $montoSimulado
+            ]);
+            $mensaje = '¡$1,000,000 ARS cargados exitosamente (saldo creado)!';
+            $statusCode = 201; 
         }
 
-        // 2. Si no tiene, se lo creamos
-        $nuevoSaldo = $user->saldos()->create([
-            'moneda' => $moneda,
-            'cantidad' => $montoSimulado
-        ]);
-
+        //Devolvemos la respuesta (sea de creación o actualización)
         return response()->json([
-            'message' => '¡$1,000,000 ARS cargados exitosamente!',
-            'saldo' => $nuevoSaldo
-        ], 201); // 201 Created
+            'message' => $mensaje,
+            'saldo' => $saldoResultado 
+        ], $statusCode); 
     }
 }

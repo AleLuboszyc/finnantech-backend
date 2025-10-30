@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class NoticiaSeeder extends Seeder
 {
-    public function run(): void
+    public function run(): void 
     {
         DB::table('noticias')->insert([
             [
